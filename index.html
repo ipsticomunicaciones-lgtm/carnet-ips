@@ -47,7 +47,7 @@
     .row-group > div { flex: 1; }
 
     /* Filas dinámicas con botón eliminar */
-    .dynamic-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+    .dynamic-row { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; }
     .btn-delete {
       background: #fff;
       color: var(--red);
@@ -81,13 +81,28 @@
     }
     .btn-add:hover { background: #f0f4f8; }
 
+    /* Medidor de caracteres flotante/fijo en el formulario */
+    .char-counter-box {
+      background: #eef2f5;
+      padding: 12px 15px;
+      border-radius: 12px;
+      margin-top: 25px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #d4dfe6;
+    }
+
     .btn-action { 
       background: var(--navy); 
       color: #fff; 
       border: none; 
       width: 100%; 
       padding: 15px; 
-      margin-top: 30px; 
+      margin-top: 15px; 
       font-weight: 800; 
       border-radius: 14px; 
       cursor: pointer; 
@@ -133,7 +148,7 @@
       box-shadow: 0 3px 13px rgba(24,52,83,.045); 
     }
     .card-heading { margin: 0 0 14px; font-weight: 800; font-size: 1.3rem; color: var(--navy); }
-    .card-copy { margin: 0 0 8px; line-height: 1.55; font-size: 1.05rem; }
+    .card-copy { margin: 0 0 8px; line-height: 1.55; font-size: 1.05rem; word-break: break-word; }
     .call-link { 
       display: flex; 
       width: 100%; 
@@ -166,35 +181,35 @@
   <!-- Formulario Principal -->
   <div class="form-container" id="panelFormulario">
     <h2>Generador de Fichas Médicas – IPS</h2>
-    <form id="carnetForm">
+    <form id="carnetForm" oninput="actualizarContador()">
       
       <label>Nombre Completo del Paciente:</label>
       <input type="text" id="inputNombre" required placeholder="Ej. Isaac Mateo Ramírez Cubillos">
 
       <label>Mensaje corto: lo más importante que deben saber de mí</label>
-      <textarea id="inputMensajeCorto" rows="2" placeholder="Ej. Soy autista, no gritos, háblame despacio."></textarea>
+      <textarea id="inputMensajeCorto" rows="3" placeholder="Escribe aquí toda la introducción detallada que necesites..."></textarea>
 
       <div class="row-group">
         <div>
           <label>Tipo de sangre</label>
-          <input type="text" id="inputSangre" placeholder="Ej. O+">
+          <textarea id="inputSangre" rows="2" placeholder="Ej. O+ (Observaciones médicas)"></textarea>
         </div>
         <div>
           <label>Alergias</label>
-          <input type="text" id="inputAlergias" placeholder="Ej. Durazno, lácteos">
+          <textarea id="inputAlergias" rows="2" placeholder="Ej. Durazno, lácteos, medicamentos..."></textarea>
         </div>
       </div>
 
       <label>Qué NO hacer</label>
-      <textarea id="inputNoHacer" rows="2" placeholder="Ej. No tocarme por sorpresa. No gritar."></textarea>
+      <textarea id="inputNoHacer" rows="4" placeholder="Detalla todas las restricciones, alertas o situaciones que se deben evitar por completo..."></textarea>
 
       <label>Cómo ayudarme</label>
       <div id="contenedorAyuda">
         <div class="dynamic-row">
-          <input type="text" class="inputAyudaItem" placeholder="Háblame suave y con órdenes cortas.">
+          <textarea class="inputAyudaItem" rows="2" placeholder="Escribe detalladamente una estrategia de apoyo..."></textarea>
         </div>
       </div>
-      <button type="button" class="btn-add" onclick="agregarCampo('contenedorAyuda', 'inputAyudaItem', 'Ej. Otra estrategia de apoyo...')">+ Agregar indicación</button>
+      <button type="button" class="btn-add" onclick="agregarCampoAyuda()">+ Agregar indicación</button>
 
       <label>Video o canción favorita (link de YouTube, opcional)</label>
       <input type="text" id="inputVideo" placeholder="https://youtu.be/...">
@@ -202,14 +217,20 @@
       <label>Contactos de Emergencia (el primero recibe llamada directa)</label>
       <div id="contenedorContactos">
         <div class="dynamic-row">
-          <input type="text" class="contactoNombre" placeholder="Nombre (Ej. Mamá)" style="flex: 1.2;">
-          <input type="tel" class="contactoTel" placeholder="Teléfono (Ej. 3001234567)" style="flex: 1.8;">
+          <textarea class="contactoNombre" rows="2" placeholder="Nombre / Relación / Notas" style="flex: 1.2;"></textarea>
+          <input type="tel" class="contactoTel" placeholder="Teléfono" style="flex: 1.8;">
         </div>
       </div>
       <button type="button" class="btn-add" onclick="agregarContacto()">+ Agregar contacto</button>
 
       <label>Fotografía del Paciente:</label>
       <input type="file" id="inputFoto" accept="image/*" required>
+
+      <!-- MEDIDOR DE CARACTERES Y PORCENTAJE -->
+      <div class="char-counter-box">
+        <span>Capacidad de texto usada:</span>
+        <span id="textoPorcentaje">0 / 5,000 carac. (0%)</span>
+      </div>
 
       <button type="button" class="btn-action" onclick="generarCarnetVisual()">Generar QR</button>
     </form>
@@ -266,13 +287,29 @@
   </div>
 
   <script>
-    function agregarCampo(idContenedor, claseInput, placeholderTexto) {
-      const contenedor = document.getElementById(idContenedor);
+    function actualizarContador() {
+      const form = document.getElementById('carnetForm');
+      const elementos = form.querySelectorAll('input[type="text"], textarea');
+      let totalCaracteres = 0;
+      elementos.forEach(el => {
+        if(el.type !== 'file' && el.type !== 'tel') {
+          totalCaracteres += el.value.length;
+        }
+      });
+      const maxLimiite = 5000;
+      let porcentaje = (totalCaracteres / maxLimiite) * 100;
+      if(porcentaje > 100) porcentaje = 100;
+      
+      document.getElementById('textoPorcentaje').innerText = totalCaracteres.toLocaleString() + " / " + maxLimiite.toLocaleString() + " carac. (" + porcentaje.toFixed(1) + "%)";
+    }
+
+    function agregarCampoAyuda() {
+      const contenedor = document.getElementById('contenedorAyuda');
       const div = document.createElement('div');
       div.className = 'dynamic-row';
       div.innerHTML = `
-        <input type="text" class="${claseInput}" placeholder="${placeholderTexto}">
-        <button type="button" class="btn-delete" onclick="this.parentElement.remove()">✕</button>
+        <textarea class="inputAyudaItem" rows="2" placeholder="Escribe otra estrategia de apoyo detallada..."></textarea>
+        <button type="button" class="btn-delete" onclick="this.parentElement.remove(); actualizarContador();">✕</button>
       `;
       contenedor.appendChild(div);
     }
@@ -282,9 +319,9 @@
       const div = document.createElement('div');
       div.className = 'dynamic-row';
       div.innerHTML = `
-        <input type="text" class="contactoNombre" placeholder="Nombre / Relación" style="flex: 1.2;">
+        <textarea class="contactoNombre" rows="2" placeholder="Nombre / Relación / Notas" style="flex: 1.2;"></textarea>
         <input type="tel" class="contactoTel" placeholder="Teléfono" style="flex: 1.8;">
-        <button type="button" class="btn-delete" onclick="this.parentElement.remove()">✕</button>
+        <button type="button" class="btn-delete" onclick="this.parentElement.remove(); actualizarContador();">✕</button>
       `;
       contenedor.appendChild(div);
     }
@@ -297,7 +334,7 @@
       const fotoInput = document.getElementById('inputFoto');
 
       if(!nombre || fotoInput.files.length === 0) {
-        alert('Por favor escribe el nombre del paciente y adjunta su fotografía.');
+        alert('Por favor escribe el nombre del paciente y adjunta su fotografía obligatoria.');
         return;
       }
 
@@ -354,14 +391,14 @@
           hayContactos = true;
           const p = document.createElement('p');
           p.className = 'card-copy';
-          p.innerText = `• ${nom}: ${tel}`;
+          p.innerText = `• ${nom.replace(/\n/g, ' ')}: ${tel}`;
           viewContactos.appendChild(p);
 
           if(tel) {
             const a = document.createElement('a');
             a.className = 'call-link';
             a.href = "tel:" + tel;
-            a.innerText = `Llamar a ${nom || 'Emergencias'}: ${tel}`;
+            a.innerText = `Llamar a Emergencias: ${tel}`;
             viewContenedorBotonesLlamar.appendChild(a);
           }
         }
