@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de Fichas Médicas – IPS</title>
+  <title>Generador de Fichas Médicas - IPS</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root { 
       --navy: #183453; 
@@ -14,152 +15,423 @@
       --border: #B8C4C2;
     }
     * { box-sizing: border-box; }
-    body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--navy); margin: 0; padding: 16px; }
-    .container { max-width: 650px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    body { 
+      font-family: 'DM Sans', sans-serif; 
+      background: var(--paper); 
+      color: var(--navy); 
+      margin: 0; 
+      padding: 16px; 
+    }
+    .form-container { 
+      max-width: 650px; 
+      margin: 20px auto; 
+      background: #fff; 
+      padding: 30px; 
+      border-radius: 20px; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+    }
     h2 { text-align: center; color: var(--navy); margin-bottom: 25px; font-weight: 800; }
-    h3 { color: var(--navy); border-bottom: 2px solid var(--yellow); padding-bottom: 6px; margin-top: 25px; font-size: 1.1rem; }
-    label { display: block; margin-top: 14px; font-weight: 700; font-size: 14px; color: var(--navy); }
-    input, textarea { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid var(--border); border-radius: 10px; font: inherit; background: #fff; }
+    label { display: block; margin-top: 18px; font-weight: 700; font-size: 14px; color: var(--navy); }
+    input, textarea { 
+      width: 100%; 
+      padding: 12px; 
+      margin-top: 6px; 
+      border: 1px solid var(--border); 
+      border-radius: 10px; 
+      font: inherit; 
+      background: #fff;
+    }
     input:focus, textarea:focus { outline: none; border-color: var(--navy); }
-    .dynamic-row { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; }
-    .btn-delete { background: #fff; color: var(--red); border: 1px solid var(--red); width: 44px; height: 44px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .btn-add { background: #fff; color: var(--navy); border: 2px solid var(--navy); width: 100%; padding: 10px; margin-top: 8px; font-weight: 700; border-radius: 10px; cursor: pointer; font-size: 13px; }
-    .btn-action { background: var(--navy); color: #fff; border: none; width: 100%; padding: 15px; margin-top: 20px; font-weight: 800; border-radius: 14px; cursor: pointer; font-size: 16px; }
     
-    /* Vista de la Tarjeta (Oculta por defecto, se muestra al generar) */
-    #vistaTarjeta { display: none; }
-    .tarjeta-final { background: var(--paper); border-radius: 20px; overflow: hidden; border: 1px solid #E3E8E7; }
-    .profile-header { background: var(--yellow); padding: 35px 20px; text-align: center; }
-    .portrait { width: 116px; height: 116px; margin: 0 auto 20px; border: 5px solid #fff; border-radius: 50%; object-fit: cover; display: block; }
-    .profile-title { margin: 0; font-size: 2.2rem; font-weight: 800; color: var(--navy); }
-    .profile-subtitle { margin: 15px auto 0; font-size: 1.1rem; font-weight: 700; color: var(--red); }
+    .row-group { display: flex; gap: 12px; }
+    .row-group > div { flex: 1; }
+
+    /* Filas dinámicas con botón eliminar */
+    .dynamic-row { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; }
+    .btn-delete {
+      background: #fff;
+      color: var(--red);
+      border: 1px solid var(--red);
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+    .btn-delete:hover { background: #fdf2f2; }
+
+    /* Botones de Agregar */
+    .btn-add {
+      background: #fff;
+      color: var(--navy);
+      border: 2px solid var(--navy);
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      text-align: center;
+    }
+    .btn-add:hover { background: #f0f4f8; }
+
+    /* Medidor de caracteres flotante/fijo en el formulario */
+    .char-counter-box {
+      background: #eef2f5;
+      padding: 12px 15px;
+      border-radius: 12px;
+      margin-top: 25px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #d4dfe6;
+    }
+
+    .btn-action { 
+      background: var(--navy); 
+      color: #fff; 
+      border: none; 
+      width: 100%; 
+      padding: 15px; 
+      margin-top: 15px; 
+      font-weight: 800; 
+      border-radius: 14px; 
+      cursor: pointer; 
+      font-size: 16px; 
+    }
+    .btn-action:hover { background: #10243d; }
+    
+    /* Estilos de la Tarjeta Final Generada */
+    #tarjetaFinal { 
+      display: none; 
+      max-width: 650px; 
+      margin: 0 auto; 
+      background: var(--paper); 
+      border-radius: 20px; 
+      overflow: hidden; 
+      border: 1px solid #E3E8E7; 
+    }
+    .profile-header { 
+      width: 100%; 
+      background: var(--yellow); 
+      padding: 35px 20px; 
+      text-align: center; 
+    }
+    .portrait { 
+      width: 116px; 
+      height: 116px; 
+      margin: 0 auto 20px; 
+      border: 5px solid #fff; 
+      border-radius: 50%; 
+      object-fit: cover; 
+      box-shadow: 0 5px 0 rgba(24,52,83,.11); 
+      display: block; 
+    }
+    .profile-title { margin: 0; font-size: 2.2rem; font-weight: 800; color: var(--navy); line-height: 1.15; }
+    .profile-subtitle { margin: 15px auto 0; max-width: 580px; font-size: 1.1rem; font-weight: 700; color: var(--red); line-height: 1.5; }
     .content-area { padding: 24px 16px; }
-    .info-card { background: #fff; border: 1px solid #E3E8E7; border-radius: 20px; padding: 22px; margin-bottom: 14px; }
-    .call-link { display: flex; width: 100%; min-height: 56px; align-items: center; justify-content: center; border-radius: 14px; padding: 12px; background: var(--red); color: #fff; font-weight: 800; text-decoration: none; margin-top: 12px; }
+    .cards { display: grid; gap: 14px; }
+    .info-card { 
+      background: #fff; 
+      border: 1px solid #E3E8E7; 
+      border-radius: 20px; 
+      padding: 22px; 
+      box-shadow: 0 3px 13px rgba(24,52,83,.045); 
+    }
+    .card-heading { margin: 0 0 14px; font-weight: 800; font-size: 1.3rem; color: var(--navy); }
+    .card-copy { margin: 0 0 8px; line-height: 1.55; font-size: 1.05rem; word-break: break-word; }
+    .call-link { 
+      display: flex; 
+      width: 100%; 
+      min-height: 56px; 
+      align-items: center; 
+      justify-content: center; 
+      border-radius: 14px; 
+      padding: 12px; 
+      background: var(--red); 
+      color: #fff; 
+      font-weight: 800; 
+      font-size: 1.1rem; 
+      text-decoration: none; 
+      box-shadow: 0 4px 0 #861A25; 
+      margin-top: 12px; 
+      text-align: center; 
+    }
+    .qr-section { 
+      text-align: center; 
+      background: #fff; 
+      padding: 25px; 
+      border-radius: 20px; 
+      border: 1px solid #E3E8E7; 
+    }
+    .qr-box { margin: 15px auto; display: inline-block; padding: 10px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
 
-  <!-- 1. PANEL FORMULARIO -->
-  <div class="container" id="panelFormulario">
+  <!-- Formulario Principal -->
+  <div class="form-container" id="panelFormulario">
     <h2>Generador de Fichas Médicas – IPS</h2>
-    
-    <h3>DATOS GENERALES</h3>
-    <label>Nombre:</label>
-    <input type="text" id="inputNombre" placeholder="Ej. Elena Contreras Rivera">
+    <form id="carnetForm" oninput="actualizarContador()">
+      
+      <label>Nombre Completo del Paciente:</label>
+      <input type="text" id="inputNombre" required placeholder="Ej. Isaac Mateo Ramírez Cubillos">
 
-    <label>Diagnóstico / Presentación:</label>
-    <textarea id="inputDiagnostico" rows="2" placeholder="Ej. Tengo diagnóstico de autismo..."></textarea>
+      <label>Mensaje corto: lo más importante que deben saber de mí</label>
+      <textarea id="inputMensajeCorto" rows="3" placeholder="Escribe aquí toda la introducción detallada que necesites..."></textarea>
 
-    <label>Número(s) de contacto:</label>
-    <div id="contenedorContactos">
-      <div class="dynamic-row">
-        <input type="tel" class="contactoTel" placeholder="Ej. 3114828893">
+      <div class="row-group">
+        <div>
+          <label>Tipo de sangre</label>
+          <textarea id="inputSangre" rows="2" placeholder="Ej. O+ (Observaciones médicas)"></textarea>
+        </div>
+        <div>
+          <label>Alergias</label>
+          <textarea id="inputAlergias" rows="2" placeholder="Ej. Durazno, lácteos, medicamentos..."></textarea>
+        </div>
       </div>
-    </div>
-    <button type="button" class="btn-add" onclick="agregarCampo('contenedorContactos', 'tel', 'Número adicional')">+ Agregar contacto</button>
 
-    <h3>LO QUE ME INCOMODA</h3>
-    <div id="contenedorIncomoda">
-      <div class="dynamic-row">
-        <textarea class="inputIncomodaItem" rows="2" placeholder="Ej. Ruidos fuertes..."></textarea>
+      <label>Qué NO hacer</label>
+      <textarea id="inputNoHacer" rows="4" placeholder="Detalla todas las restricciones, alertas o situaciones que se deben evitar por completo..."></textarea>
+
+      <label>Cómo ayudarme</label>
+      <div id="contenedorAyuda">
+        <div class="dynamic-row">
+          <textarea class="inputAyudaItem" rows="2" placeholder="Escribe detalladamente una estrategia de apoyo..."></textarea>
+        </div>
       </div>
-    </div>
-    <button type="button" class="btn-add" onclick="agregarCampo('contenedorIncomoda', 'textarea', 'Otra incomodidad...')">+ Agregar incomodidad</button>
+      <button type="button" class="btn-add" onclick="agregarCampoAyuda()">+ Agregar indicación</button>
 
-    <label style="margin-top:20px;">Fotografía del Paciente:</label>
-    <input type="file" id="inputFoto" accept="image/*">
+      <label>Video o canción favorita (link de YouTube, opcional)</label>
+      <input type="text" id="inputVideo" placeholder="https://youtu.be/...">
 
-    <button type="button" class="btn-action" onclick="generarCarnet()">Ver Carnet en Pantalla</button>
+      <label>Contactos de Emergencia (el primero recibe llamada directa)</label>
+      <div id="contenedorContactos">
+        <div class="dynamic-row">
+          <textarea class="contactoNombre" rows="2" placeholder="Nombre / Relación / Notas" style="flex: 1.2;"></textarea>
+          <input type="tel" class="contactoTel" placeholder="Teléfono" style="flex: 1.8;">
+        </div>
+      </div>
+      <button type="button" class="btn-add" onclick="agregarContacto()">+ Agregar contacto</button>
+
+      <label>Fotografía del Paciente:</label>
+      <input type="file" id="inputFoto" accept="image/*" required>
+
+      <!-- MEDIDOR DE CARACTERES Y PORCENTAJE -->
+      <div class="char-counter-box">
+        <span>Capacidad de texto usada:</span>
+        <span id="textoPorcentaje">0 / 5,000 carac. (0%)</span>
+      </div>
+
+      <button type="button" class="btn-action" onclick="generarCarnetVisual()">Generar QR</button>
+    </form>
   </div>
 
-  <!-- 2. VISTA FINAL DEL CARNET -->
-  <div class="container" id="vistaTarjeta">
-    <div class="tarjeta-final">
-      <div class="profile-header">
-        <img id="imgSalida" class="portrait" alt="Foto">
-        <h1 class="profile-title" id="lblNombre"></h1>
-        <p class="profile-subtitle" id="lblDiag"></p>
+  <!-- Vista Final de la Tarjeta Interactiva -->
+  <div id="tarjetaFinal">
+    <header class="profile-header">
+      <img id="viewFoto" class="portrait" alt="Foto del Paciente" src="">
+      <h1 id="viewNombre" class="profile-title"></h1>
+      <p id="viewSub" class="profile-subtitle"></p>
+    </header>
+    
+    <main class="content-area">
+      <div class="cards">
+        <section class="info-card">
+          <h2 class="card-heading">Datos Médicos</h2>
+          <p id="viewSangre" class="card-copy"><b>Tipo de sangre:</b> </p>
+          <p id="viewAlergias" class="card-copy"><b>Alergias:</b> </p>
+        </section>
+
+        <section class="info-card" id="seccionNoHacer" style="display:none;">
+          <h2 class="card-heading">Qué NO hacer</h2>
+          <div id="viewNoHacer"></div>
+        </section>
+
+        <section class="info-card">
+          <h2 class="card-heading">Cómo puedes ayudarme</h2>
+          <div id="viewAyuda"></div>
+        </section>
+
+        <section class="info-card" id="seccionVideo" style="display:none;">
+          <h2 class="card-heading">Video / Canción Favorita</h2>
+          <div id="viewVideo"></div>
+        </section>
+
+        <section class="info-card">
+          <h2 class="card-heading">Contactos de Emergencia</h2>
+          <div id="viewContactos"></div>
+        </section>
+
+        <section class="qr-section">
+          <h2 class="card-heading">Código QR y Enlace</h2>
+          <p style="margin: 0 0 10px; font-size: 0.95rem;">Escanea este código para ver el perfil:</p>
+          <div class="qr-box" id="qrcode"></div>
+          <p id="linkTexto" style="word-break: break-all; font-weight: bold; color: var(--red); font-size: 0.9rem; margin-top: 10px;"></p>
+        </section>
+
+        <footer style="margin-top: 10px;" id="viewContenedorBotonesLlamar">
+          <!-- Botones de llamada dinámicos -->
+        </footer>
       </div>
-      <div class="content-area" id="areaContenidoCards">
-        <!-- Aquí se inyectan los datos limpios -->
-      </div>
-      <div style="padding: 20px; text-align: center;">
-        <button type="button" class="btn-action" style="background:#6c757d; margin-top:0;" onclick="volverFormulario()">← Volver a Editar</button>
-      </div>
-    </div>
+    </main>
   </div>
 
   <script>
-    // Función genérica ultra simple para agregar campos sin código complejo
-    function agregarCampo(idContenedor, tipo, placeholder) {
-      const contenedor = document.getElementById(idContenedor);
+    function actualizarContador() {
+      const form = document.getElementById('carnetForm');
+      const elementos = form.querySelectorAll('input[type="text"], textarea');
+      let totalCaracteres = 0;
+      elementos.forEach(el => {
+        if(el.type !== 'file' && el.type !== 'tel') {
+          totalCaracteres += el.value.length;
+        }
+      });
+      const maxLimiite = 5000;
+      let porcentaje = (totalCaracteres / maxLimiite) * 100;
+      if(porcentaje > 100) porcentaje = 100;
+      
+      document.getElementById('textoPorcentaje').innerText = totalCaracteres.toLocaleString() + " / " + maxLimiite.toLocaleString() + " carac. (" + porcentaje.toFixed(1) + "%)";
+    }
+
+    function agregarCampoAyuda() {
+      const contenedor = document.getElementById('contenedorAyuda');
       const div = document.createElement('div');
       div.className = 'dynamic-row';
-      if(tipo === 'tel') {
-        div.innerHTML = `<input type="tel" class="contactoTel" placeholder="${placeholder}"><button type="button" class="btn-delete" onclick="this.parentElement.remove()">✕</button>`;
-      } else {
-        div.innerHTML = `<textarea class="inputIncomodaItem" rows="2" placeholder="${placeholder}"></textarea><button type="button" class="btn-delete" onclick="this.parentElement.remove()">✕</button>`;
-      }
+      div.innerHTML = `
+        <textarea class="inputAyudaItem" rows="2" placeholder="Escribe otra estrategia de apoyo detallada..."></textarea>
+        <button type="button" class="btn-delete" onclick="this.parentElement.remove(); actualizarContador();">✕</button>
+      `;
       contenedor.appendChild(div);
     }
 
-    // Generar la tarjeta directamente en la misma página ocultando el formulario (Cero errores de Blob)
-    function generarCarnet() {
-      const nombre = document.getElementById('inputNombre').value.trim();
-      const diag = document.getElementById('inputDiagnostico').value.trim();
+    function agregarContacto() {
+      const contenedor = document.getElementById('contenedorContactos');
+      const div = document.createElement('div');
+      div.className = 'dynamic-row';
+      div.innerHTML = `
+        <textarea class="contactoNombre" rows="2" placeholder="Nombre / Relación / Notas" style="flex: 1.2;"></textarea>
+        <input type="tel" class="contactoTel" placeholder="Teléfono" style="flex: 1.8;">
+        <button type="button" class="btn-delete" onclick="this.parentElement.remove(); actualizarContador();">✕</button>
+      `;
+      contenedor.appendChild(div);
+    }
+
+    function generarCarnetVisual() {
+      const nombre = document.getElementById('inputNombre').value;
+      const mensajeCorto = document.getElementById('inputMensajeCorto').value;
+      const sangre = document.getElementById('inputSangre').value;
+      const alergias = document.getElementById('inputAlergias').value;
       const fotoInput = document.getElementById('inputFoto');
 
-      if(!nombre) {
-        alert('Por favor escribe al menos el nombre.');
+      if(!nombre || fotoInput.files.length === 0) {
+        alert('Por favor escribe el nombre del paciente y adjunta su fotografía obligatoria.');
         return;
       }
 
-      // Asignar datos básicos
-      document.getElementById('lblNombre').innerText = "Hola, soy " + nombre;
-      document.getElementById('lblDiag').innerText = diag || "Perfil de emergencia médica.";
+      // Rellenar cabecera
+      document.getElementById('viewNombre').innerText = "Hola, soy " + nombre;
+      document.getElementById('viewSub').innerText = mensajeCorto ? mensajeCorto : "Perfil de emergencia e identificación médica.";
 
-      const areaCards = document.getElementById('areaContenidoCards');
-      areaCards.innerHTML = ''; // Limpiar anterior
+      // Datos médicos
+      document.getElementById('viewSangre').innerHTML = "<b>Tipo de sangre:</b> " + (sangre || "No especificado");
+      document.getElementById('viewAlergias').innerHTML = "<b>Alergias:</b> " + (alergias || "Ninguna registrada");
 
-      // Recopilar contactos
-      document.querySelectorAll('.contactoTel').forEach(input => {
+      // Qué no hacer
+      const noHacer = document.getElementById('inputNoHacer').value;
+      if(noHacer.trim()) {
+        document.getElementById('seccionNoHacer').style.display = 'block';
+        document.getElementById('viewNoHacer').innerHTML = '<p class="card-copy">• ' + noHacer.replace(/\n/g, '<br>• ') + '</p>';
+      }
+
+      // Cómo ayudarme (dinámico)
+      const inputsAyuda = document.querySelectorAll('.inputAyudaItem');
+      const viewAyuda = document.getElementById('viewAyuda');
+      viewAyuda.innerHTML = '';
+      inputsAyuda.forEach(input => {
         if(input.value.trim()) {
-          areaCards.innerHTML += `<a class="call-link" href="tel:${input.value.trim()}">Llamar a Emergencias: ${input.value.trim()}</a>`;
+          const p = document.createElement('p');
+          p.className = 'card-copy';
+          p.innerText = "• " + input.value;
+          viewAyuda.appendChild(p);
+        }
+      });
+      if(viewAyuda.innerHTML === '') viewAyuda.innerHTML = '<p class="card-copy">No especificado.</p>';
+
+      // Video de YouTube
+      const videoUrl = document.getElementById('inputVideo').value;
+      if(videoUrl.trim()) {
+        document.getElementById('seccionVideo').style.display = 'block';
+        document.getElementById('viewVideo').innerHTML = `<p class="card-copy"><a href="${videoUrl}" target="_blank" style="color: var(--navy); font-weight: bold;">Ver video o escuchar canción favorita</a></p>`;
+      }
+
+      // Contactos de emergencia y Botones de llamada
+      const nombresContacto = document.querySelectorAll('.contactoNombre');
+      const telsContacto = document.querySelectorAll('.contactoTel');
+      const viewContactos = document.getElementById('viewContactos');
+      const viewContenedorBotonesLlamar = document.getElementById('viewContenedorBotonesLlamar');
+      
+      viewContactos.innerHTML = '';
+      viewContenedorBotonesLlamar.innerHTML = '';
+
+      let hayContactos = false;
+      nombresContacto.forEach((item, index) => {
+        const nom = item.value;
+        const tel = telsContacto[index].value;
+        if(nom || tel) {
+          hayContactos = true;
+          const p = document.createElement('p');
+          p.className = 'card-copy';
+          p.innerText = `• ${nom.replace(/\n/g, ' ')}: ${tel}`;
+          viewContactos.appendChild(p);
+
+          if(tel) {
+            const a = document.createElement('a');
+            a.className = 'call-link';
+            a.href = "tel:" + tel;
+            a.innerText = `Llamar a Emergencias: ${tel}`;
+            viewContenedorBotonesLlamar.appendChild(a);
+          }
         }
       });
 
-      // Recopilar incomodidades
-      let incomodasHTML = '';
-      document.querySelectorAll('.inputIncomodaItem').forEach(textarea => {
-        if(textarea.value.trim()) {
-          incomodasHTML += `<p>• ${textarea.value.trim()}</p>`;
-        }
-      });
-
-      if(incomodasHTML) {
-        areaCards.innerHTML += `<div class="info-card"><h3>Qué me incomoda</h3>${incomodasHTML}</div>`;
+      if(!hayContactos) {
+        viewContactos.innerHTML = '<p class="card-copy">No hay contactos registrados.</p>';
       }
 
-      // Manejar foto
-      if(fotoInput.files && fotoInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('imgSalida').src = e.target.result;
-        }
-        reader.readAsDataURL(fotoInput.files[0]);
+      // Foto de perfil
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('viewFoto').src = e.target.result;
       }
+      reader.readAsDataURL(fotoInput.files[0]);
 
-      // Cambiar de vista de forma limpia
+      // Ocultar formulario y mostrar tarjeta
       document.getElementById('panelFormulario').style.display = 'none';
-      document.getElementById('vistaTarjeta').style.display = 'block';
-      window.scrollTo(0, 0);
-    }
+      document.getElementById('tarjetaFinal').style.display = 'block';
 
-    function volverFormulario() {
-      document.getElementById('vistaTarjeta').style.display = 'none';
-      document.getElementById('panelFormulario').style.display = 'block';
-      window.scrollTo(0, 0);
+      // Código QR
+      document.getElementById('qrcode').innerHTML = '';
+      const urlBase = window.location.href.split('?')[0];
+      const urlFinal = urlBase + "?p=" + encodeURIComponent(nombre);
+      document.getElementById('linkTexto').innerText = urlFinal;
+
+      new QRCode(document.getElementById("qrcode"), {
+        text: urlFinal,
+        width: 140,
+        height: 140
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   </script>
 </body>
