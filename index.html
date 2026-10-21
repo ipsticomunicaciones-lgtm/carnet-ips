@@ -172,6 +172,20 @@
       border: 1px solid #E3E8E7; 
     }
     .qr-box { margin: 15px auto; display: inline-block; padding: 10px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .btn-download-qr { 
+      background: #28a745; 
+      color: #fff; 
+      border: none; 
+      padding: 10px 18px; 
+      font-weight: 700; 
+      border-radius: 10px; 
+      cursor: pointer; 
+      font-size: 13px; 
+      display: inline-block; 
+      text-decoration: none; 
+      margin-top: 10px; 
+    }
+    .btn-download-qr:hover { background: #218838; }
   </style>
 </head>
 <body>
@@ -288,172 +302,4 @@
       let porcentaje = (totalCaracteres / maxLimiite) * 100;
       if(porcentaje > 100) porcentaje = 100;
       
-      document.getElementById('textoPorcentaje').innerText = totalCaracteres.toLocaleString() + " / " + maxLimiite.toLocaleString() + " carac. (" + porcentaje.toFixed(1) + "%)";
-    }
-
-    function agregarContacto() {
-      const contenedor = document.getElementById('contenedorContactos');
-      const div = document.createElement('div');
-      div.className = 'dynamic-row';
-      div.innerHTML = `
-        <input type="tel" class="contactoTel" placeholder="Número de contacto adicional">
-        <button type="button" class="btn-delete" onclick="this.parentElement.remove(); actualizarContador();">✕</button>
-      `;
-      contenedor.appendChild(div);
-      actualizarContador();
-    }
-
-    function agregarIncomodidad() {
-      const contenedor = document.getElementById('contenedorIncomoda');
-      const div = document.createElement('div');
-      div.className = 'dynamic-row';
-      div.innerHTML = `
-        <textarea class="inputIncomodaItem" rows="2" placeholder="Otra incomodidad o dificultad..."></textarea>
-        <button type="button" class="btn-delete" onclick="this.parentElement.remove(); actualizarContador();">✕</button>
-      `;
-      contenedor.appendChild(div);
-      actualizarContador();
-    }
-
-    function agregarAyuda() {
-      const contenedor = document.getElementById('contenedorAyuda');
-      const div = document.createElement('div');
-      div.className = 'dynamic-row';
-      div.innerHTML = `
-        <textarea class="inputAyudaItem" rows="2" placeholder="Otro indicador de apoyo..."></textarea>
-        <button type="button" class="btn-delete" onclick="this.parentElement.remove(); actualizarContador();">✕</button>
-      `;
-      contenedor.appendChild(div);
-      actualizarContador();
-    }
-
-    function agregarGustos() {
-      const contenedor = document.getElementById('contenedorGustos');
-      const div = document.createElement('div');
-      div.className = 'dynamic-row';
-      div.innerHTML = `
-        <textarea class="inputGustosItem" rows="2" placeholder="Otro gusto..."></textarea>
-        <button type="button" class="btn-delete" onclick="this.parentElement.remove(); actualizarContador();">✕</button>
-      `;
-      contenedor.appendChild(div);
-      actualizarContador();
-    }
-
-    function generarCarnetVisual() {
-      const nombre = document.getElementById('inputNombre').value.trim();
-      const diag = document.getElementById('inputDiagnostico').value.trim();
-      const sangre = document.getElementById('inputSangre').value.trim();
-      const alergias = document.getElementById('inputAlergias').value.trim();
-      const comunicacion = document.getElementById('inputComunicacion').value.trim();
-      const sueno = document.getElementById('inputSueno').value.trim();
-      const fotoInput = document.getElementById('inputFoto');
-
-      if(!nombre || fotoInput.files.length === 0) {
-        alert('Por favor escribe el nombre del paciente y adjunta su fotografía.');
-        return;
-      }
-
-      // Rellenar cabecera corporativa
-      document.getElementById('viewNombre').innerText = "Hola, soy " + nombre;
-      document.getElementById('viewSub').innerText = diag || "Perfil de emergencia e identificación médica.";
-
-      const areaCards = document.getElementById('contenedorCardsSalida');
-      areaCards.innerHTML = '';
-
-      // 1. Alerta Médica y Seguridad
-      areaCards.innerHTML += `
-        <section class="info-card">
-          <h2 class="card-heading">Alerta Médica y Seguridad</h2>
-          <p class="card-copy"><b>Tipo de sangre:</b> ${sangre || "No especificado"}</p>
-          <p class="card-copy"><b>Alergias:</b> ${alergias || "Ninguna registrada"}</p>
-          <p class="card-copy"><b>Comunicación:</b> ${comunicacion || "No especificado"}</p>
-        </section>
-      `;
-
-      // 2. Qué me incomoda o se me dificulta (Dinámico)
-      let incomodasHTML = '';
-      document.querySelectorAll('.inputIncomodaItem').forEach(el => {
-        if(el.value.trim()) incomodasHTML += `<p class="card-copy">• ${el.value.trim()}</p>`;
-      });
-      if(incomodasHTML) {
-        areaCards.innerHTML += `<section class="info-card"><h2 class="card-heading">Qué me incomoda o se me dificulta</h2>${incomodasHTML}</section>`;
-      }
-
-      // 3. Cómo puedes ayudarme (Dinámico)
-      let ayudaHTML = '';
-      document.querySelectorAll('.inputAyudaItem').forEach(el => {
-        if(el.value.trim()) ayudaHTML += `<p class="card-copy">• ${el.value.trim()}</p>`;
-      });
-      if(ayudaHTML) {
-        areaCards.innerHTML += `<section class="info-card"><h2 class="card-heading">Cómo puedes ayudarme</h2>${ayudaHTML}</section>`;
-      }
-
-      // 4. Gustos (Dinámico)
-      let gustosHTML = '';
-      document.querySelectorAll('.inputGustosItem').forEach(el => {
-        if(el.value.trim()) gustosHTML += `<p class="card-copy">• ${el.value.trim()}</p>`;
-      });
-      if(gustosHTML) {
-        areaCards.innerHTML += `<section class="info-card"><h2 class="card-heading">Gustos</h2>${gustosHTML}</section>`;
-      }
-
-      // 5. Sueño
-      if(sueno) {
-        areaCards.innerHTML += `
-          <section class="info-card">
-            <h2 class="card-heading">Sueño</h2>
-            <p class="card-copy">${sueno.replace(/\n/g, '<br>')}</p>
-          </section>
-        `;
-      }
-
-      // 6. Botones de llamada operativa (tel:)
-      document.querySelectorAll('.contactoTel').forEach(el => {
-        if(el.value.trim()) {
-          const telClean = el.value.trim().replace(/[^0-9+]/g, '');
-          areaCards.innerHTML += `<a class="call-link" href="tel:${telClean}">Llamar a Emergencias: ${el.value.trim()}</a>`;
-        }
-      });
-
-      // 7. Código QR corporativo
-      areaCards.innerHTML += `
-        <section class="qr-section">
-          <h2 class="card-heading">Código QR del Carnet</h2>
-          <p style="margin: 0 0 10px; font-size: 0.95rem;">Escanea este código para ver el perfil:</p>
-          <div class="qr-box" id="qrcode"></div>
-          <p id="linkTexto" style="word-break: break-all; font-weight: bold; color: var(--red); font-size: 0.9rem; margin-top: 10px;"></p>
-        </section>
-      `;
-
-      // Cargar la foto de perfil seleccionada
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        document.getElementById('viewFoto').src = e.target.result;
-      }
-      reader.readAsDataURL(fotoInput.files[0]);
-
-      // Alternar vistas de forma limpia y local
-      document.getElementById('panelFormulario').style.display = 'none';
-      document.getElementById('tarjetaFinal').style.display = 'block';
-
-      // Renderizar el QR limpio
-      const qrContainer = document.getElementById("qrcode");
-      qrContainer.innerHTML = '';
-      const urlBase = window.location.href.split('?')[0];
-      const urlFinal = urlBase + "?p=" + encodeURIComponent(nombre);
-      document.getElementById('linkTexto').innerText = urlFinal;
-
-      new QRCode(qrContainer, {
-        text: urlFinal,
-        width: 140,
-        height: 140,
-        colorDark: "#183453",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-      });
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  </script>
-</body>
-</html>
+      document.getElementById('textoPorcentaje').innerText = totalCaracteres.toLocaleString() + " / " + maxLimiite.toLocaleString() + " carac. ("
