@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de Fichas Médicas - IPS</title>
+  <title>Carnet de Emergencia - IPS</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
@@ -208,7 +208,7 @@
 </head>
 <body>
 
-  <!-- Formulario Principal -->
+  <!-- Formulario Principal (Creador) -->
   <div class="form-container" id="panelFormulario">
     <h2>Generador de Fichas Médicas – IPS</h2>
     <form id="carnetForm" oninput="actualizarContador()">
@@ -278,7 +278,6 @@
       <label>Fotografía del Paciente:</label>
       <input type="file" id="inputFoto" accept="image/*" required>
 
-      <!-- MEDIDOR DE CARACTERES -->
       <div class="char-counter-box">
         <span>Capacidad de texto usada:</span>
         <span id="textoPorcentaje">0 / 5,000 carac. (0%)</span>
@@ -287,7 +286,6 @@
       <button type="button" class="btn-action" onclick="generarCarnetVisual()">Generar Ficha y QR</button>
     </form>
 
-    <!-- PANEL DEL CREADOR PARA DESCARGAR QR Y LINK -->
     <div id="panelCreadorQR">
       <h3 style="margin-top:0;">¡Ficha Generada con Éxito!</h3>
       <p style="font-size: 14px; color: #555;">Descarga el código QR o copia el enlace para compartir con los padres:</p>
@@ -303,8 +301,8 @@
     </div>
   </div>
 
-  <!-- Vista Final de la Tarjeta Interactiva (Para los Papás - SIN QR NI LINK) -->
-  <div id="tarjetaFinal" style="display:none; margin: 20px auto;">
+  <!-- Vista Final de la Tarjeta Interactiva (Para los Papás) -->
+  <div id="tarjetaFinal">
     <header class="profile-header">
       <img id="viewFoto" class="portrait" alt="Foto del Paciente" src="">
       <h1 id="viewNombre" class="profile-title"></h1>
@@ -343,11 +341,33 @@
         <footer style="margin-top: 10px;" id="viewContenedorBotonesLlamar">
           <!-- Botones de llamada directa -->
         </footer>
+        
+        <div style="text-align: center; margin-top: 20px;">
+          <a href="./" style="color: var(--navy); font-size: 13px; font-weight: bold; text-decoration: underline;">← Volver al Generador de Fichas IPS</a>
+        </div>
       </div>
     </main>
   </div>
 
   <script>
+    // Al cargar la página, revisamos si se guardaron datos en localStorage para mostrárselos al papá
+    window.onload = function() {
+      const params = new URLSearchParams(window.location.search);
+      const pacienteParam = params.get('p');
+
+      if(pacienteParam) {
+        const datosGuardados = localStorage.getItem('ips_card_' + pacienteParam);
+        if(datosGuardados) {
+          const data = JSON.parse(datosGuardados);
+          mostrarTarjetaFinal(data);
+          return;
+        }
+      }
+      // Si no hay parámetro, mostrar el formulario de creación
+      document.getElementById('panelFormulario').style.display = 'block';
+      document.getElementById('tarjetaFinal').style.display = 'none';
+    };
+
     function actualizarContador() {
       const form = document.getElementById('carnetForm');
       const elementos = form.querySelectorAll('input[type="text"], textarea');
@@ -410,14 +430,12 @@
     function reiniciarTodo() {
       document.getElementById('carnetForm').reset();
       document.getElementById('panelCreadorQR').style.display = 'none';
-      document.getElementById('panelFormulario').style.display = 'block';
-      document.getElementById('tarjetaFinal').style.display = 'none';
       actualizarContador();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function generarCarnetVisual() {
-      const nombre = document.getElementById('inputNombre').value;
+      const nombre = document.getElementById('inputNombre').value.trim();
       const diag = document.getElementById('inputDiagnostico').value;
       const sangre = document.getElementById('inputSangre').value;
       const alergias = document.getElementById('inputAlergias').value;
@@ -430,122 +448,130 @@
         return;
       }
 
-      // Rellenar cabecera de la tarjeta para papás
-      document.getElementById('viewNombre').innerText = "Hola, soy " + nombre;
-      document.getElementById('viewSub').innerText = diag ? diag : "Perfil de emergencia e identificación médica.";
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const fotoBase64 = e.target.result;
 
-      // Alerta Médica
-      document.getElementById('viewSangre').innerHTML = "<b>Tipo de sangre:</b> " + (sangre || "No especificado");
-      document.getElementById('viewAlergias').innerHTML = "<b>Alergias:</b> " + (alergias || "Ninguna registrada");
-      document.getElementById('viewComunicacion').innerHTML = "<b>Comunicación:</b> " + (comunicacion || "No especificado");
+        // Recolectar listas dinámicas
+        const incomodasArr = [];
+        document.querySelectorAll('.inputIncomodaItem').forEach(el => { if(el.value.trim()) incomodasArr.push(el.value); });
+
+        const ayudaArr = [];
+        document.querySelectorAll('.inputAyudaItem').forEach(el => { if(el.value.trim()) ayudaArr.push(el.value); });
+
+        const gustosArr = [];
+        document.querySelectorAll('.inputGustosItem').forEach(el => { if(el.value.trim()) gustosArr.push(el.value); });
+
+        const telsArr = [];
+        document.querySelectorAll('.contactoTel').forEach(el => { if(el.value.trim()) telsArr.push(el.value); });
+
+        const dataPaciente = {
+          nombre, diag, sangre, alergias, comunicacion, sueno, foto: fotoBase64,
+          incomodas: incomodasArr, ayuda: ayudaArr, gustos: gustosArr, tels: telsArr
+        };
+
+        // Guardar en almacenamiento local del navegador para que el link funcione
+        localStorage.setItem('ips_card_' + nombre, JSON.stringify(dataPaciente));
+
+        // Generar enlace y QR en el panel del creador
+        document.getElementById('qrcode').innerHTML = '';
+        const urlBase = window.location.href.split('?')[0];
+        const urlFinal = urlBase + "?p=" + encodeURIComponent(nombre);
+        document.getElementById('linkTexto').value = urlFinal;
+
+        new QRCode(document.getElementById("qrcode"), {
+          text: urlFinal,
+          width: 150,
+          height: 150
+        });
+
+        setTimeout(() => {
+          const qrImg = document.querySelector('#qrcode img');
+          const qrCanvas = document.querySelector('#qrcode canvas');
+          const btnDownload = document.getElementById('btnDescargarQR');
+          if(qrImg && qrImg.src) {
+            btnDownload.href = qrImg.src;
+          } else if(qrCanvas) {
+            btnDownload.href = qrCanvas.toDataURL("image/png");
+          }
+        }, 300);
+
+        document.getElementById('panelCreadorQR').style.display = 'block';
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      };
+      reader.readAsDataURL(fotoInput.files[0]);
+    }
+
+    function mostrarTarjetaFinal(data) {
+      document.getElementById('panelFormulario').style.display = 'none';
+      document.getElementById('tarjetaFinal').style.display = 'block';
+
+      document.getElementById('viewFoto').src = data.foto;
+      document.getElementById('viewNombre').innerText = "Hola, soy " + data.nombre;
+      document.getElementById('viewSub').innerText = data.diag ? data.diag : "Perfil de emergencia e identificación médica.";
+
+      document.getElementById('viewSangre').innerHTML = "<b>Tipo de sangre:</b> " + (data.sangre || "No especificado");
+      document.getElementById('viewAlergias').innerHTML = "<b>Alergias:</b> " + (data.alergias || "Ninguna registrada");
+      document.getElementById('viewComunicacion').innerHTML = "<b>Comunicación:</b> " + (data.comunicacion || "No especificado");
 
       // Incomodidades
-      const incomodas = document.querySelectorAll('.inputIncomodaItem');
       const viewIncomoda = document.getElementById('viewIncomoda');
       viewIncomoda.innerHTML = '';
-      let tieneIncomoda = false;
-      incomodas.forEach(item => {
-        if(item.value.trim()) {
-          tieneIncomoda = true;
+      if(data.incomodas && data.incomodas.length > 0) {
+        data.incomodas.forEach(item => {
           const p = document.createElement('p');
           p.className = 'card-copy';
-          p.innerText = "• " + item.value;
+          p.innerText = "• " + item;
           viewIncomoda.appendChild(p);
-        }
-      });
-      document.getElementById('seccionIncomoda').style.display = tieneIncomoda ? 'block' : 'none';
+        });
+        document.getElementById('seccionIncomoda').style.display = 'block';
+      }
 
       // Ayuda
-      const ayudas = document.querySelectorAll('.inputAyudaItem');
       const viewAyuda = document.getElementById('viewAyuda');
       viewAyuda.innerHTML = '';
-      let tieneAyuda = false;
-      ayudas.forEach(item => {
-        if(item.value.trim()) {
-          tieneAyuda = true;
+      if(data.ayuda && data.ayuda.length > 0) {
+        data.ayuda.forEach(item => {
           const p = document.createElement('p');
           p.className = 'card-copy';
-          p.innerText = "• " + item.value;
+          p.innerText = "• " + item;
           viewAyuda.appendChild(p);
-        }
-      });
-      document.getElementById('seccionAyuda').style.display = tieneAyuda ? 'block' : 'none';
+        });
+        document.getElementById('seccionAyuda').style.display = 'block';
+      }
 
       // Gustos
-      const gustos = document.querySelectorAll('.inputGustosItem');
       const viewGustos = document.getElementById('viewGustos');
       viewGustos.innerHTML = '';
-      let tieneGustos = false;
-      gustos.forEach(item => {
-        if(item.value.trim()) {
-          tieneGustos = true;
+      if(data.gustos && data.gustos.length > 0) {
+        data.gustos.forEach(item => {
           const p = document.createElement('p');
           p.className = 'card-copy';
-          p.innerText = "• " + item.value;
+          p.innerText = "• " + item;
           viewGustos.appendChild(p);
-        }
-      });
-      document.getElementById('seccionGustos').style.display = tieneGustos ? 'block' : 'none';
+        });
+        document.getElementById('seccionGustos').style.display = 'block';
+      }
 
       // Sueño
       const seccionSueno = document.getElementById('seccionSueno');
-      if(sueno.trim()) {
+      if(data.sueno && data.sueno.trim()) {
         seccionSueno.style.display = 'block';
-        document.getElementById('viewSueno').innerHTML = '<p class="card-copy">' + sueno.replace(/\n/g, '<br>') + '</p>';
-      } else {
-        seccionSueno.style.display = 'none';
+        document.getElementById('viewSueno').innerHTML = '<p class="card-copy">' + data.sueno.replace(/\n/g, '<br>') + '</p>';
       }
 
-      // Contactos y Botones de llamada
-      const tels = document.querySelectorAll('.contactoTel');
+      // Teléfonos de emergencia
       const viewContenedorBotonesLlamar = document.getElementById('viewContenedorBotonesLlamar');
       viewContenedorBotonesLlamar.innerHTML = '';
-
-      tels.forEach(item => {
-        const telVal = item.value.trim();
-        if(telVal) {
+      if(data.tels && data.tels.length > 0) {
+        data.tels.forEach(telVal => {
           const a = document.createElement('a');
           a.className = 'call-link';
           a.href = "tel:" + telVal.replace(/[^0-9+]/g, '');
           a.innerText = "Llamar a Emergencias: " + telVal;
           viewContenedorBotonesLlamar.appendChild(a);
-        }
-      });
-
-      // Foto de perfil
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        document.getElementById('viewFoto').src = e.target.result;
+        });
       }
-      reader.readAsDataURL(fotoInput.files[0]);
-
-      // Generar URL y QR para el creador
-      document.getElementById('qrcode').innerHTML = '';
-      const urlBase = window.location.href.split('?')[0];
-      const urlFinal = urlBase + "?p=" + encodeURIComponent(nombre);
-      document.getElementById('linkTexto').value = urlFinal;
-
-      new QRCode(document.getElementById("qrcode"), {
-        text: urlFinal,
-        width: 150,
-        height: 150
-      });
-
-      // Dar tiempo a que el QR se dibuje y configurar el botón de descarga de imagen
-      setTimeout(() => {
-        const qrImg = document.querySelector('#qrcode img');
-        const qrCanvas = document.querySelector('#qrcode canvas');
-        const btnDownload = document.getElementById('btnDescargarQR');
-        if(qrImg && qrImg.src) {
-          btnDownload.href = qrImg.src;
-        } else if(qrCanvas) {
-          btnDownload.href = qrCanvas.toDataURL("image/png");
-        }
-      }, 300);
-
-      // Mostrar solo la sección del creador con el QR y enlace (sin ocultar el formulario por completo, o mostrando el panel de éxito)
-      document.getElementById('panelCreadorQR').style.display = 'block';
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
   </script>
 </body>
