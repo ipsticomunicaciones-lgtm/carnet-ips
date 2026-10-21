@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de Carnet de Emergencia - IPS</title>
+  <title>Generador de Fichas Médicas - IPS</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
@@ -12,6 +12,7 @@
       --red: #A82732; 
       --paper: #F3F5F4; 
       --yellow: #F7CF52; 
+      --border: #B8C4C2;
     }
     * { box-sizing: border-box; }
     body { 
@@ -22,30 +23,71 @@
       padding: 16px; 
     }
     .form-container { 
-      max-width: 600px; 
+      max-width: 650px; 
       margin: 20px auto; 
       background: #fff; 
       padding: 30px; 
       border-radius: 20px; 
       box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
     }
-    h2 { text-align: center; color: var(--navy); margin-bottom: 25px; }
-    label { display: block; margin-top: 15px; font-weight: 700; font-size: 14px; }
+    h2 { text-align: center; color: var(--navy); margin-bottom: 25px; font-weight: 800; }
+    label { display: block; margin-top: 18px; font-weight: 700; font-size: 14px; color: var(--navy); }
     input, textarea { 
       width: 100%; 
       padding: 12px; 
-      margin-top: 5px; 
-      border: 1px solid #B8C4C2; 
+      margin-top: 6px; 
+      border: 1px solid var(--border); 
       border-radius: 10px; 
       font: inherit; 
+      background: #fff;
     }
+    input:focus, textarea:focus { outline: none; border-color: var(--navy); }
+    
+    .row-group { display: flex; gap: 12px; }
+    .row-group > div { flex: 1; }
+
+    /* Filas dinámicas con botón eliminar */
+    .dynamic-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+    .btn-delete {
+      background: #fff;
+      color: var(--red);
+      border: 1px solid var(--red);
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+    .btn-delete:hover { background: #fdf2f2; }
+
+    /* Botones de Agregar */
+    .btn-add {
+      background: #fff;
+      color: var(--navy);
+      border: 2px solid var(--navy);
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      text-align: center;
+    }
+    .btn-add:hover { background: #f0f4f8; }
+
     .btn-action { 
       background: var(--navy); 
       color: #fff; 
       border: none; 
       width: 100%; 
       padding: 15px; 
-      margin-top: 25px; 
+      margin-top: 30px; 
       font-weight: 800; 
       border-radius: 14px; 
       cursor: pointer; 
@@ -53,10 +95,10 @@
     }
     .btn-action:hover { background: #10243d; }
     
-    /* Estilos exactos de la Tarjeta Final */
+    /* Estilos de la Tarjeta Final Generada */
     #tarjetaFinal { 
       display: none; 
-      max-width: 720px; 
+      max-width: 650px; 
       margin: 0 auto; 
       background: var(--paper); 
       border-radius: 20px; 
@@ -79,21 +121,8 @@
       box-shadow: 0 5px 0 rgba(24,52,83,.11); 
       display: block; 
     }
-    .profile-title { 
-      margin: 0; 
-      font-size: 2.2rem; 
-      font-weight: 800; 
-      color: var(--navy); 
-      line-height: 1.15; 
-    }
-    .profile-subtitle { 
-      margin: 15px auto 0; 
-      max-width: 670px; 
-      font-size: 1.1rem; 
-      font-weight: 700; 
-      color: var(--red); 
-      line-height: 1.5; 
-    }
+    .profile-title { margin: 0; font-size: 2.2rem; font-weight: 800; color: var(--navy); line-height: 1.15; }
+    .profile-subtitle { margin: 15px auto 0; max-width: 580px; font-size: 1.1rem; font-weight: 700; color: var(--red); line-height: 1.5; }
     .content-area { padding: 24px 16px; }
     .cards { display: grid; gap: 14px; }
     .info-card { 
@@ -103,32 +132,23 @@
       padding: 22px; 
       box-shadow: 0 3px 13px rgba(24,52,83,.045); 
     }
-    .card-heading { 
-      margin: 0 0 14px; 
-      font-weight: 800; 
-      font-size: 1.3rem; 
-      color: var(--navy); 
-    }
-    .card-copy { 
-      margin: 0 0 8px; 
-      line-height: 1.55; 
-      font-size: 1.05rem; 
-    }
+    .card-heading { margin: 0 0 14px; font-weight: 800; font-size: 1.3rem; color: var(--navy); }
+    .card-copy { margin: 0 0 8px; line-height: 1.55; font-size: 1.05rem; }
     .call-link { 
       display: flex; 
       width: 100%; 
-      min-height: 60px; 
+      min-height: 56px; 
       align-items: center; 
       justify-content: center; 
-      border-radius: 17px; 
-      padding: 13px; 
+      border-radius: 14px; 
+      padding: 12px; 
       background: var(--red); 
       color: #fff; 
       font-weight: 800; 
-      font-size: 1.15rem; 
+      font-size: 1.1rem; 
       text-decoration: none; 
-      box-shadow: 0 5px 0 #861A25; 
-      margin-top: 20px; 
+      box-shadow: 0 4px 0 #861A25; 
+      margin-top: 12px; 
       text-align: center; 
     }
     .qr-section { 
@@ -138,54 +158,64 @@
       border-radius: 20px; 
       border: 1px solid #E3E8E7; 
     }
-    .qr-box { 
-      margin: 15px auto; 
-      display: inline-block; 
-      padding: 10px; 
-      background: #fff; 
-      border-radius: 10px; 
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-    }
+    .qr-box { margin: 15px auto; display: inline-block; padding: 10px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
 
-  <!-- Formulario Interno -->
+  <!-- Formulario Principal -->
   <div class="form-container" id="panelFormulario">
-    <h2>Generador de Fichas Médicas - IPS</h2>
+    <h2>Generador de Fichas Médicas – IPS</h2>
     <form id="carnetForm">
+      
       <label>Nombre Completo del Paciente:</label>
       <input type="text" id="inputNombre" required placeholder="Ej. Isaac Mateo Ramírez Cubillos">
 
-      <label>Diagnóstico / Presentación:</label>
-      <input type="text" id="inputSub" required placeholder="Ej. Soy hablante. Diagnóstico de Trastorno...">
+      <label>Mensaje corto: lo más importante que deben saber de mí</label>
+      <textarea id="inputMensajeCorto" rows="2" placeholder="Ej. Soy autista, no gritos, háblame despacio."></textarea>
 
-      <label>Datos Médicos (Sangre, Alergias, etc.):</label>
-      <textarea id="inputMedicos" rows="3" placeholder="Sangre: A+&#10;Alergias: Rinitis"></textarea>
+      <div class="row-group">
+        <div>
+          <label>Tipo de sangre</label>
+          <input type="text" id="inputSangre" placeholder="Ej. O+">
+        </div>
+        <div>
+          <label>Alergias</label>
+          <input type="text" id="inputAlergias" placeholder="Ej. Durazno, lácteos">
+        </div>
+      </div>
 
-      <label>Qué me incomoda:</label>
-      <textarea id="inputIncomoda" rows="3" placeholder="Escribe cada punto separado por salto de línea"></textarea>
+      <label>Qué NO hacer</label>
+      <textarea id="inputNoHacer" rows="2" placeholder="Ej. No tocarme por sorpresa. No gritar."></textarea>
 
-      <label>Cómo puedes ayudarme:</label>
-      <textarea id="inputAyuda" rows="3" placeholder="Escribe las estrategias de apoyo..."></textarea>
+      <label>Cómo ayudarme</label>
+      <div id="contenedorAyuda">
+        <div class="dynamic-row">
+          <input type="text" class="inputAyudaItem" placeholder="Háblame suave y con órdenes cortas.">
+        </div>
+      </div>
+      <button type="button" class="btn-add" onclick="agregarCampo('contenedorAyuda', 'inputAyudaItem', 'Ej. Otra estrategia de apoyo...')">+ Agregar indicación</button>
 
-      <label>Mis Gustos:</label>
-      <textarea id="inputGustos" rows="2" placeholder="Ej. Animales, Spiderman..."></textarea>
+      <label>Video o canción favorita (link de YouTube, opcional)</label>
+      <input type="text" id="inputVideo" placeholder="https://youtu.be/...">
 
-      <label>Sueño y Rutinas:</label>
-      <textarea id="inputSueno" rows="2" placeholder="Ej. Problemas con la rutina de sueño..."></textarea>
-
-      <label>Número de Emergencia (para el botón inferior):</label>
-      <input type="tel" id="inputTelEmergencia" required placeholder="Ej. 3232321450">
+      <label>Contactos de Emergencia (el primero recibe llamada directa)</label>
+      <div id="contenedorContactos">
+        <div class="dynamic-row">
+          <input type="text" class="contactoNombre" placeholder="Nombre (Ej. Mamá)" style="flex: 1.2;">
+          <input type="tel" class="contactoTel" placeholder="Teléfono (Ej. 3001234567)" style="flex: 1.8;">
+        </div>
+      </div>
+      <button type="button" class="btn-add" onclick="agregarContacto()">+ Agregar contacto</button>
 
       <label>Fotografía del Paciente:</label>
       <input type="file" id="inputFoto" accept="image/*" required>
 
-      <button type="button" class="btn-action" onclick="generarCarnetVisual()">Generar Ficha Interactiva</button>
+      <button type="button" class="btn-action" onclick="generarCarnetVisual()">Generar QR</button>
     </form>
   </div>
 
-  <!-- Vista Final de la Tarjeta Estilizada -->
+  <!-- Vista Final de la Tarjeta Interactiva -->
   <div id="tarjetaFinal">
     <header class="profile-header">
       <img id="viewFoto" class="portrait" alt="Foto del Paciente" src="">
@@ -197,12 +227,13 @@
       <div class="cards">
         <section class="info-card">
           <h2 class="card-heading">Datos Médicos</h2>
-          <div id="viewMedicos"></div>
+          <p id="viewSangre" class="card-copy"><b>Tipo de sangre:</b> </p>
+          <p id="viewAlergias" class="card-copy"><b>Alergias:</b> </p>
         </section>
 
-        <section class="info-card">
-          <h2 class="card-heading">Qué me incomoda</h2>
-          <div id="viewIncomoda"></div>
+        <section class="info-card" id="seccionNoHacer" style="display:none;">
+          <h2 class="card-heading">Qué NO hacer</h2>
+          <div id="viewNoHacer"></div>
         </section>
 
         <section class="info-card">
@@ -210,62 +241,148 @@
           <div id="viewAyuda"></div>
         </section>
 
-        <section class="info-card">
-          <h2 class="card-heading">Mis Gustos</h2>
-          <div id="viewGustos"></div>
+        <section class="info-card" id="seccionVideo" style="display:none;">
+          <h2 class="card-heading">Video / Canción Favorita</h2>
+          <div id="viewVideo"></div>
         </section>
 
         <section class="info-card">
-          <h2 class="card-heading">Sueño</h2>
-          <div id="viewSueno"></div>
+          <h2 class="card-heading">Contactos de Emergencia</h2>
+          <div id="viewContactos"></div>
         </section>
 
         <section class="qr-section">
-          <h2 class="card-heading">Código QR del Paciente</h2>
-          <p style="margin: 0 0 10px; font-size: 0.95rem;">Escanea este código para ver el perfil interactivo:</p>
+          <h2 class="card-heading">Código QR y Enlace</h2>
+          <p style="margin: 0 0 10px; font-size: 0.95rem;">Escanea este código para ver el perfil:</p>
           <div class="qr-box" id="qrcode"></div>
           <p id="linkTexto" style="word-break: break-all; font-weight: bold; color: var(--red); font-size: 0.9rem; margin-top: 10px;"></p>
         </section>
 
-        <footer style="margin-top: 10px;">
-          <a id="viewBtnLlamar" class="call-link" href="#">Llamar a Emergencias</a>
+        <footer style="margin-top: 10px;" id="viewContenedorBotonesLlamar">
+          <!-- Botones de llamada dinámicos -->
         </footer>
       </div>
     </main>
   </div>
 
   <script>
+    function agregarCampo(idContenedor, claseInput, placeholderTexto) {
+      const contenedor = document.getElementById(idContenedor);
+      const div = document.createElement('div');
+      div.className = 'dynamic-row';
+      div.innerHTML = `
+        <input type="text" class="${claseInput}" placeholder="${placeholderTexto}">
+        <button type="button" class="btn-delete" onclick="this.parentElement.remove()">✕</button>
+      `;
+      contenedor.appendChild(div);
+    }
+
+    function agregarContacto() {
+      const contenedor = document.getElementById('contenedorContactos');
+      const div = document.createElement('div');
+      div.className = 'dynamic-row';
+      div.innerHTML = `
+        <input type="text" class="contactoNombre" placeholder="Nombre / Relación" style="flex: 1.2;">
+        <input type="tel" class="contactoTel" placeholder="Teléfono" style="flex: 1.8;">
+        <button type="button" class="btn-delete" onclick="this.parentElement.remove()">✕</button>
+      `;
+      contenedor.appendChild(div);
+    }
+
     function generarCarnetVisual() {
       const nombre = document.getElementById('inputNombre').value;
-      const sub = document.getElementById('inputSub').value;
-      const tel = document.getElementById('inputTelEmergencia').value;
+      const mensajeCorto = document.getElementById('inputMensajeCorto').value;
+      const sangre = document.getElementById('inputSangre').value;
+      const alergias = document.getElementById('inputAlergias').value;
       const fotoInput = document.getElementById('inputFoto');
 
-      if(!nombre || !tel || fotoInput.files.length === 0) {
-        alert('Por favor completa los campos principales y adjunta la foto.');
+      if(!nombre || fotoInput.files.length === 0) {
+        alert('Por favor escribe el nombre del paciente y adjunta su fotografía.');
         return;
       }
 
+      // Rellenar cabecera
       document.getElementById('viewNombre').innerText = "Hola, soy " + nombre;
-      document.getElementById('viewSub').innerText = sub;
-      document.getElementById('viewBtnLlamar').innerText = "Llamar a Emergencias: " + tel;
-      document.getElementById('viewBtnLlamar').href = "tel:" + tel;
+      document.getElementById('viewSub').innerText = mensajeCorto ? mensajeCorto : "Perfil de emergencia e identificación médica.";
 
+      // Datos médicos
+      document.getElementById('viewSangre').innerHTML = "<b>Tipo de sangre:</b> " + (sangre || "No especificado");
+      document.getElementById('viewAlergias').innerHTML = "<b>Alergias:</b> " + (alergias || "Ninguna registrada");
+
+      // Qué no hacer
+      const noHacer = document.getElementById('inputNoHacer').value;
+      if(noHacer.trim()) {
+        document.getElementById('seccionNoHacer').style.display = 'block';
+        document.getElementById('viewNoHacer').innerHTML = '<p class="card-copy">• ' + noHacer.replace(/\n/g, '<br>• ') + '</p>';
+      }
+
+      // Cómo ayudarme (dinámico)
+      const inputsAyuda = document.querySelectorAll('.inputAyudaItem');
+      const viewAyuda = document.getElementById('viewAyuda');
+      viewAyuda.innerHTML = '';
+      inputsAyuda.forEach(input => {
+        if(input.value.trim()) {
+          const p = document.createElement('p');
+          p.className = 'card-copy';
+          p.innerText = "• " + input.value;
+          viewAyuda.appendChild(p);
+        }
+      });
+      if(viewAyuda.innerHTML === '') viewAyuda.innerHTML = '<p class="card-copy">No especificado.</p>';
+
+      // Video de YouTube
+      const videoUrl = document.getElementById('inputVideo').value;
+      if(videoUrl.trim()) {
+        document.getElementById('seccionVideo').style.display = 'block';
+        document.getElementById('viewVideo').innerHTML = `<p class="card-copy"><a href="${videoUrl}" target="_blank" style="color: var(--navy); font-weight: bold;">Ver video o escuchar canción favorita</a></p>`;
+      }
+
+      // Contactos de emergencia y Botones de llamada
+      const nombresContacto = document.querySelectorAll('.contactoNombre');
+      const telsContacto = document.querySelectorAll('.contactoTel');
+      const viewContactos = document.getElementById('viewContactos');
+      const viewContenedorBotonesLlamar = document.getElementById('viewContenedorBotonesLlamar');
+      
+      viewContactos.innerHTML = '';
+      viewContenedorBotonesLlamar.innerHTML = '';
+
+      let hayContactos = false;
+      nombresContacto.forEach((item, index) => {
+        const nom = item.value;
+        const tel = telsContacto[index].value;
+        if(nom || tel) {
+          hayContactos = true;
+          const p = document.createElement('p');
+          p.className = 'card-copy';
+          p.innerText = `• ${nom}: ${tel}`;
+          viewContactos.appendChild(p);
+
+          if(tel) {
+            const a = document.createElement('a');
+            a.className = 'call-link';
+            a.href = "tel:" + tel;
+            a.innerText = `Llamar a ${nom || 'Emergencias'}: ${tel}`;
+            viewContenedorBotonesLlamar.appendChild(a);
+          }
+        }
+      });
+
+      if(!hayContactos) {
+        viewContactos.innerHTML = '<p class="card-copy">No hay contactos registrados.</p>';
+      }
+
+      // Foto de perfil
       const reader = new FileReader();
       reader.onload = function(e) {
         document.getElementById('viewFoto').src = e.target.result;
       }
       reader.readAsDataURL(fotoInput.files[0]);
 
-      cargarBloques('inputMedicos', 'viewMedicos');
-      cargarBloques('inputIncomoda', 'viewIncomoda');
-      cargarBloques('inputAyuda', 'viewAyuda');
-      cargarBloques('inputGustos', 'viewGustos');
-      cargarBloques('inputSueno', 'viewSueno');
-
+      // Ocultar formulario y mostrar tarjeta
       document.getElementById('panelFormulario').style.display = 'none';
       document.getElementById('tarjetaFinal').style.display = 'block';
 
+      // Código QR
       document.getElementById('qrcode').innerHTML = '';
       const urlBase = window.location.href.split('?')[0];
       const urlFinal = urlBase + "?p=" + encodeURIComponent(nombre);
@@ -278,25 +395,6 @@
       });
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function cargarBloques(inputId, viewId) {
-      const texto = document.getElementById(inputId).value;
-      const contenedor = document.getElementById(viewId);
-      contenedor.innerHTML = '';
-      if(!texto.trim()) {
-        contenedor.innerHTML = '<p class="card-copy">No especificado.</p>';
-        return;
-      }
-      const lineas = texto.split('\n');
-      lineas.forEach(linea => {
-        if(linea.trim() !== '') {
-          const p = document.createElement('p');
-          p.className = 'card-copy';
-          p.innerText = "• " + linea;
-          contenedor.appendChild(p);
-        }
-      });
     }
   </script>
 </body>
