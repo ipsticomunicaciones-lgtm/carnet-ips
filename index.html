@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carnet de Emergencia - IPS</title>
+  <title>Generador de Fichas Médicas – IPS</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
@@ -107,103 +107,6 @@
       font-size: 16px; 
     }
     .btn-action:hover { background: #10243d; }
-
-    .btn-secondary {
-      background: #6c757d;
-      color: #fff;
-      border: none;
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      font-weight: 700;
-      border-radius: 14px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .btn-secondary:hover { background: #5a6268; }
-
-    /* Panel de QR y Enlace para el Creador */
-    #panelCreadorQR {
-      display: none;
-      background: #fff;
-      padding: 25px;
-      border-radius: 20px;
-      border: 2px solid var(--yellow);
-      margin-top: 20px;
-      text-align: center;
-    }
-    .qr-box { margin: 15px auto; display: inline-block; padding: 10px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .btn-download-qr {
-      background: #28a745;
-      color: #fff;
-      border: none;
-      padding: 12px 20px;
-      font-weight: 700;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 14px;
-      margin-top: 10px;
-      display: inline-block;
-      text-decoration: none;
-    }
-    .btn-download-qr:hover { background: #218838; }
-
-    /* Estilos de la Tarjeta Final para los Papás */
-    #tarjetaFinal { 
-      display: none; 
-      max-width: 650px; 
-      margin: 0 auto; 
-      background: var(--paper); 
-      border-radius: 20px; 
-      overflow: hidden; 
-      border: 1px solid #E3E8E7; 
-    }
-    .profile-header { 
-      width: 100%; 
-      background: var(--yellow); 
-      padding: 35px 20px; 
-      text-align: center; 
-    }
-    .portrait { 
-      width: 116px; 
-      height: 116px; 
-      margin: 0 auto 20px; 
-      border: 5px solid #fff; 
-      border-radius: 50%; 
-      object-fit: cover; 
-      box-shadow: 0 5px 0 rgba(24,52,83,.11); 
-      display: block; 
-    }
-    .profile-title { margin: 0; font-size: 2.2rem; font-weight: 800; color: var(--navy); line-height: 1.15; }
-    .profile-subtitle { margin: 15px auto 0; max-width: 580px; font-size: 1.1rem; font-weight: 700; color: var(--red); line-height: 1.5; }
-    .content-area { padding: 24px 16px; }
-    .cards { display: grid; gap: 14px; }
-    .info-card { 
-      background: #fff; 
-      border: 1px solid #E3E8E7; 
-      border-radius: 20px; 
-      padding: 22px; 
-      box-shadow: 0 3px 13px rgba(24,52,83,.045); 
-    }
-    .card-heading { margin: 0 0 14px; font-weight: 800; font-size: 1.3rem; color: var(--navy); }
-    .card-copy { margin: 0 0 8px; line-height: 1.55; font-size: 1.05rem; word-break: break-word; }
-    .call-link { 
-      display: flex; 
-      width: 100%; 
-      min-height: 56px; 
-      align-items: center; 
-      justify-content: center; 
-      border-radius: 14px; 
-      padding: 12px; 
-      background: var(--red); 
-      color: #fff; 
-      font-weight: 800; 
-      font-size: 1.1rem; 
-      text-decoration: none; 
-      box-shadow: 0 4px 0 #861A25; 
-      margin-top: 12px; 
-      text-align: center; 
-    }
   </style>
 </head>
 <body>
@@ -273,7 +176,7 @@
 
 
       <h3>SUEÑO</h3>
-      <textarea id="inputSueno" rows="3" placeholder="Escribe aquí las pautas de sueño y rutinas para acostarse (sin indicadores)..."></textarea>
+      <textarea id="inputSueno" rows="3" placeholder="Escribe aquí las pautas de sueño y rutinas para acostarse..."></textarea>
 
       <label>Fotografía del Paciente:</label>
       <input type="file" id="inputFoto" accept="image/*" required>
@@ -283,91 +186,11 @@
         <span id="textoPorcentaje">0 / 5,000 carac. (0%)</span>
       </div>
 
-      <button type="button" class="btn-action" onclick="generarCarnetVisual()">Generar Ficha y QR</button>
+      <button type="button" class="btn-action" onclick="generarNuevaVentanaTarjeta()">Generar Tarjeta en Nueva Pestaña</button>
     </form>
-
-    <div id="panelCreadorQR">
-      <h3 style="margin-top:0;">¡Ficha Generada con Éxito!</h3>
-      <p style="font-size: 14px; color: #555;">Descarga el código QR o copia el enlace para compartir con los padres:</p>
-      <div class="qr-box" id="qrcode"></div>
-      <div>
-        <a id="btnDescargarQR" class="btn-download-qr" download="qr-emergencia.png">⬇ Descargar Imagen QR</a>
-      </div>
-      <div style="margin-top: 15px;">
-        <label style="font-size: 12px;">Enlace directo de la ficha:</label>
-        <input type="text" id="linkTexto" readonly style="background:#f9f9f9; font-size:12px; text-align:center;">
-      </div>
-      <button type="button" class="btn-secondary" onclick="reiniciarTodo()">🔄 Borrar todo y empezar de nuevo</button>
-    </div>
-  </div>
-
-  <!-- Vista Final de la Tarjeta Interactiva (Para los Papás) -->
-  <div id="tarjetaFinal">
-    <header class="profile-header">
-      <img id="viewFoto" class="portrait" alt="Foto del Paciente" src="">
-      <h1 id="viewNombre" class="profile-title"></h1>
-      <p id="viewSub" class="profile-subtitle"></p>
-    </header>
-    
-    <main class="content-area">
-      <div class="cards">
-        <section class="info-card">
-          <h2 class="card-heading">Alerta Médica y Seguridad</h2>
-          <p id="viewSangre" class="card-copy"><b>Tipo de sangre:</b> </p>
-          <p id="viewAlergias" class="card-copy"><b>Alergias:</b> </p>
-          <p id="viewComunicacion" class="card-copy"><b>Comunicación:</b> </p>
-        </section>
-
-        <section class="info-card" id="seccionIncomoda" style="display:none;">
-          <h2 class="card-heading">Qué me incomoda o se me dificulta</h2>
-          <div id="viewIncomoda"></div>
-        </section>
-
-        <section class="info-card" id="seccionAyuda" style="display:none;">
-          <h2 class="card-heading">Cómo puedes ayudarme</h2>
-          <div id="viewAyuda"></div>
-        </section>
-
-        <section class="info-card" id="seccionGustos" style="display:none;">
-          <h2 class="card-heading">Gustos</h2>
-          <div id="viewGustos"></div>
-        </section>
-
-        <section class="info-card" id="seccionSueno" style="display:none;">
-          <h2 class="card-heading">Sueño</h2>
-          <div id="viewSueno"></div>
-        </section>
-
-        <footer style="margin-top: 10px;" id="viewContenedorBotonesLlamar">
-          <!-- Botones de llamada directa -->
-        </footer>
-        
-        <div style="text-align: center; margin-top: 20px;">
-          <a href="./" style="color: var(--navy); font-size: 13px; font-weight: bold; text-decoration: underline;">← Volver al Generador de Fichas IPS</a>
-        </div>
-      </div>
-    </main>
   </div>
 
   <script>
-    // Al cargar la página, revisamos si se guardaron datos en localStorage para mostrárselos al papá
-    window.onload = function() {
-      const params = new URLSearchParams(window.location.search);
-      const pacienteParam = params.get('p');
-
-      if(pacienteParam) {
-        const datosGuardados = localStorage.getItem('ips_card_' + pacienteParam);
-        if(datosGuardados) {
-          const data = JSON.parse(datosGuardados);
-          mostrarTarjetaFinal(data);
-          return;
-        }
-      }
-      // Si no hay parámetro, mostrar el formulario de creación
-      document.getElementById('panelFormulario').style.display = 'block';
-      document.getElementById('tarjetaFinal').style.display = 'none';
-    };
-
     function actualizarContador() {
       const form = document.getElementById('carnetForm');
       const elementos = form.querySelectorAll('input[type="text"], textarea');
@@ -427,14 +250,7 @@
       contenedor.appendChild(div);
     }
 
-    function reiniciarTodo() {
-      document.getElementById('carnetForm').reset();
-      document.getElementById('panelCreadorQR').style.display = 'none';
-      actualizarContador();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function generarCarnetVisual() {
+    function generarNuevaVentanaTarjeta() {
       const nombre = document.getElementById('inputNombre').value.trim();
       const diag = document.getElementById('inputDiagnostico').value;
       const sangre = document.getElementById('inputSangre').value;
@@ -452,7 +268,6 @@
       reader.onload = function(e) {
         const fotoBase64 = e.target.result;
 
-        // Recolectar listas dinámicas
         const incomodasArr = [];
         document.querySelectorAll('.inputIncomodaItem').forEach(el => { if(el.value.trim()) incomodasArr.push(el.value); });
 
@@ -465,113 +280,127 @@
         const telsArr = [];
         document.querySelectorAll('.contactoTel').forEach(el => { if(el.value.trim()) telsArr.push(el.value); });
 
-        const dataPaciente = {
-          nombre, diag, sangre, alergias, comunicacion, sueno, foto: fotoBase64,
-          incomodas: incomodasArr, ayuda: ayudaArr, gustos: gustosArr, tels: telsArr
-        };
+        const urlActual = window.location.href.split('?')[0];
 
-        // Guardar en almacenamiento local del navegador para que el link funcione
-        localStorage.setItem('ips_card_' + nombre, JSON.stringify(dataPaciente));
+        // Construcción segura del HTML usando un Blob para evitar errores de sintaxis en la nueva pestaña
+        const htmlContenido = `<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carnet de Emergencia - ${nombre}</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
+  <style>
+    :root { --navy: #183453; --red: #A82732; --paper: #F3F5F4; --yellow: #F7CF52; }
+    * { box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--navy); margin: 0; padding: 16px; }
+    .tarjeta-final { max-width: 650px; margin: 20px auto; background: var(--paper); border-radius: 20px; overflow: hidden; border: 1px solid #E3E8E7; }
+    .profile-header { width: 100%; background: var(--yellow); padding: 35px 20px; text-align: center; }
+    .portrait { width: 116px; height: 116px; margin: 0 auto 20px; border: 5px solid #fff; border-radius: 50%; object-fit: cover; box-shadow: 0 5px 0 rgba(24,52,83,.11); display: block; }
+    .profile-title { margin: 0; font-size: 2.2rem; font-weight: 800; color: var(--navy); line-height: 1.15; }
+    .profile-subtitle { margin: 15px auto 0; max-width: 580px; font-size: 1.1rem; font-weight: 700; color: var(--red); line-height: 1.5; }
+    .content-area { padding: 24px 16px; }
+    .cards { display: grid; gap: 14px; }
+    .info-card { background: #fff; border: 1px solid #E3E8E7; border-radius: 20px; padding: 22px; box-shadow: 0 3px 13px rgba(24,52,83,.045); }
+    .card-heading { margin: 0 0 14px; font-weight: 800; font-size: 1.3rem; color: var(--navy); }
+    .card-copy { margin: 0 0 8px; line-height: 1.55; font-size: 1.05rem; word-break: break-word; }
+    .call-link { display: flex; width: 100%; min-height: 56px; align-items: center; justify-content: center; border-radius: 14px; padding: 12px; background: var(--red); color: #fff; font-weight: 800; font-size: 1.1rem; text-decoration: none; box-shadow: 0 4px 0 #861A25; margin-top: 12px; text-align: center; }
+    .qr-box-container { text-align: center; background: #fff; padding: 20px; border-radius: 20px; border: 2px dashed var(--yellow); margin-top: 14px; }
+    .qr-box { margin: 10px auto; display: inline-block; padding: 10px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .btn-download-qr { background: #28a745; color: #fff; border: none; padding: 10px 18px; font-weight: 700; border-radius: 10px; cursor: pointer; font-size: 13px; display: inline-block; text-decoration: none; margin-top: 8px; }
+    .btn-download-qr:hover { background: #218838; }
+  </style>
+</head>
+<body>
+  <div class="tarjeta-final">
+    <header class="profile-header">
+      <img src="${fotoBase64}" class="portrait" alt="Foto">
+      <h1 class="profile-title">Hola, soy ${nombre}</h1>
+      <p class="profile-subtitle">${diag || "Perfil de emergencia e identificación médica."}</p>
+    </header>
+    
+    <main class="content-area">
+      <div class="cards">
+        <section class="info-card">
+          <h2 class="card-heading">Alerta Médica y Seguridad</h2>
+          <p class="card-copy"><b>Tipo de sangre:</b> ${sangre || "No especificado"}</p>
+          <p class="card-copy"><b>Alergias:</b> ${alergias || "Ninguna registrada"}</p>
+          <p class="card-copy"><b>Comunicación:</b> ${comunicacion || "No especificado"}</p>
+        </section>
 
-        // Generar enlace y QR en el panel del creador
-        document.getElementById('qrcode').innerHTML = '';
-        const urlBase = window.location.href.split('?')[0];
-        const urlFinal = urlBase + "?p=" + encodeURIComponent(nombre);
-        document.getElementById('linkTexto').value = urlFinal;
+        ${incomodasArr.length > 0 ? `
+        <section class="info-card">
+          <h2 class="card-heading">Qué me incomoda o se me dificulta</h2>
+          \${incomodasArr.map(item => `<p class="card-copy">• ${item}</p>`).join('')}
+        </section>` : ''}
 
-        new QRCode(document.getElementById("qrcode"), {
-          text: urlFinal,
-          width: 150,
-          height: 150
-        });
+        ${ayudaArr.length > 0 ? `
+        <section class="info-card">
+          <h2 class="card-heading">Cómo puedes ayudarme</h2>
+          \${ayudaArr.map(item => `<p class="card-copy">• ${item}</p>`).join('')}
+        </section>` : ''}
 
-        setTimeout(() => {
-          const qrImg = document.querySelector('#qrcode img');
-          const qrCanvas = document.querySelector('#qrcode canvas');
-          const btnDownload = document.getElementById('btnDescargarQR');
-          if(qrImg && qrImg.src) {
-            btnDownload.href = qrImg.src;
-          } else if(qrCanvas) {
-            btnDownload.href = qrCanvas.toDataURL("image/png");
-          }
-        }, 300);
+        ${gustosArr.length > 0 ? `
+        <section class="info-card">
+          <h2 class="card-heading">Gustos</h2>
+          \${gustosArr.map(item => `<p class="card-copy">• ${item}</p>`).join('')}
+        </section>` : ''}
 
-        document.getElementById('panelCreadorQR').style.display = 'block';
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        ${sueno.trim() ? `
+        <section class="info-card">
+          <h2 class="card-heading">Sueño</h2>
+          <p class="card-copy">\${sueno.replace(/\n/g, '<br>')}</p>
+        </section>` : ''}
+
+        ${telsArr.map(tel => `<a class="call-link" href="tel:\${tel.replace(/[^0-9+]/g, '')}">Llamar a Emergencias: \${tel}</a>`).join('')}
+
+        <div class="qr-box-container">
+          <h3 style="margin-top:0; border:none; color: var(--navy);">Código QR del Carnet</h3>
+          <p style="font-size: 13px; color: #555; margin: 5px 0;">Descarga este código QR corporativo:</p>
+          <div class="qr-box" id="qrcode"></div>
+          <div>
+            <a id="btnDescargarQR" class="btn-download-qr" download="qr-emergencia.png">⬇ Descargar Imagen QR</a>
+          </div>
+          <div style="margin-top: 15px;">
+            <label style="font-size: 11px;">Enlace corporativo:</label>
+            <input type="text" readonly value="${urlActual}" style="background:#f9f9f9; font-size:11px; text-align:center; width:100%; padding:8px; border:1px solid #B8C4C2; border-radius:8px;">
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    new QRCode(document.getElementById("qrcode"), {
+      text: "${urlActual}",
+      width: 160,
+      height: 160,
+      colorDark: "#183453",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    setTimeout(() => {
+      const qrImg = document.querySelector('#qrcode img');
+      const qrCanvas = document.querySelector('#qrcode canvas');
+      const btnDownload = document.getElementById('btnDescargarQR');
+      if(qrImg && qrImg.src) {
+        btnDownload.href = qrImg.src;
+      } else if(qrCanvas) {
+        btnDownload.href = qrCanvas.toDataURL("image/png");
+      }
+    }, 300);
+  </script>
+</body>
+</html>`;
+
+        // Crear un Blob seguro para abrir la pestaña sin errores de sintaxis
+        const blob = new Blob([htmlContenido], { type: 'text/html;charset=utf-8' });
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
       };
       reader.readAsDataURL(fotoInput.files[0]);
-    }
-
-    function mostrarTarjetaFinal(data) {
-      document.getElementById('panelFormulario').style.display = 'none';
-      document.getElementById('tarjetaFinal').style.display = 'block';
-
-      document.getElementById('viewFoto').src = data.foto;
-      document.getElementById('viewNombre').innerText = "Hola, soy " + data.nombre;
-      document.getElementById('viewSub').innerText = data.diag ? data.diag : "Perfil de emergencia e identificación médica.";
-
-      document.getElementById('viewSangre').innerHTML = "<b>Tipo de sangre:</b> " + (data.sangre || "No especificado");
-      document.getElementById('viewAlergias').innerHTML = "<b>Alergias:</b> " + (data.alergias || "Ninguna registrada");
-      document.getElementById('viewComunicacion').innerHTML = "<b>Comunicación:</b> " + (data.comunicacion || "No especificado");
-
-      // Incomodidades
-      const viewIncomoda = document.getElementById('viewIncomoda');
-      viewIncomoda.innerHTML = '';
-      if(data.incomodas && data.incomodas.length > 0) {
-        data.incomodas.forEach(item => {
-          const p = document.createElement('p');
-          p.className = 'card-copy';
-          p.innerText = "• " + item;
-          viewIncomoda.appendChild(p);
-        });
-        document.getElementById('seccionIncomoda').style.display = 'block';
-      }
-
-      // Ayuda
-      const viewAyuda = document.getElementById('viewAyuda');
-      viewAyuda.innerHTML = '';
-      if(data.ayuda && data.ayuda.length > 0) {
-        data.ayuda.forEach(item => {
-          const p = document.createElement('p');
-          p.className = 'card-copy';
-          p.innerText = "• " + item;
-          viewAyuda.appendChild(p);
-        });
-        document.getElementById('seccionAyuda').style.display = 'block';
-      }
-
-      // Gustos
-      const viewGustos = document.getElementById('viewGustos');
-      viewGustos.innerHTML = '';
-      if(data.gustos && data.gustos.length > 0) {
-        data.gustos.forEach(item => {
-          const p = document.createElement('p');
-          p.className = 'card-copy';
-          p.innerText = "• " + item;
-          viewGustos.appendChild(p);
-        });
-        document.getElementById('seccionGustos').style.display = 'block';
-      }
-
-      // Sueño
-      const seccionSueno = document.getElementById('seccionSueno');
-      if(data.sueno && data.sueno.trim()) {
-        seccionSueno.style.display = 'block';
-        document.getElementById('viewSueno').innerHTML = '<p class="card-copy">' + data.sueno.replace(/\n/g, '<br>') + '</p>';
-      }
-
-      // Teléfonos de emergencia
-      const viewContenedorBotonesLlamar = document.getElementById('viewContenedorBotonesLlamar');
-      viewContenedorBotonesLlamar.innerHTML = '';
-      if(data.tels && data.tels.length > 0) {
-        data.tels.forEach(telVal => {
-          const a = document.createElement('a');
-          a.className = 'call-link';
-          a.href = "tel:" + telVal.replace(/[^0-9+]/g, '');
-          a.innerText = "Llamar a Emergencias: " + telVal;
-          viewContenedorBotonesLlamar.appendChild(a);
-        });
-      }
     }
   </script>
 </body>
