@@ -280,7 +280,38 @@
         const telsArr = [];
         document.querySelectorAll('.contactoTel').forEach(el => { if(el.value.trim()) telsArr.push(el.value); });
 
-        const urlActual = window.location.href.split('?')[0];
+        // Construcción de bloques HTML limpios mediante JavaScript plano (sin escapar mal las variables)
+        let incomodasHtml = '';
+        if(incomodasArr.length > 0) {
+          incomodasHtml = `<section class="info-card"><h2 class="card-heading">Qué me incomoda o se me dificulta</h2>`;
+          incomodasArr.forEach(item => { incomodasHtml += `<p class="card-copy">• ${item}</p>`; });
+          incomodasHtml += `</section>`;
+        }
+
+        let ayudaHtml = '';
+        if(ayudaArr.length > 0) {
+          ayudaHtml = `<section class="info-card"><h2 class="card-heading">Cómo puedes ayudarme</h2>`;
+          ayudaArr.forEach(item => { ayudaHtml += `<p class="card-copy">• ${item}</p>`; });
+          ayudaHtml += `</section>`;
+        }
+
+        let gustosHtml = '';
+        if(gustosArr.length > 0) {
+          gustosHtml = `<section class="info-card"><h2 class="card-heading">Gustos</h2>`;
+          gustosArr.forEach(item => { gustosHtml += `<p class="card-copy">• ${item}</p>`; });
+          gustosHtml += `</section>`;
+        }
+
+        let suenoHtml = '';
+        if(sueno.trim()) {
+          suenoHtml = `<section class="info-card"><h2 class="card-heading">Sueño</h2><p class="card-copy">${sueno.replace(/\n/g, '<br>')}</p></section>`;
+        }
+
+        let telsHtml = '';
+        telsArr.forEach(tel => {
+          const telClean = tel.replace(/[^0-9+]/g, '');
+          telsHtml += `<a class="call-link" href="tel:${telClean}">Llamar a Emergencias: ${tel}</a>`;
+        });
 
         const htmlContenido = `<!doctype html>
 <html lang="es-CO">
@@ -328,42 +359,22 @@
           <p class="card-copy"><b>Comunicación:</b> ${comunicacion || "No especificado"}</p>
         </section>
 
-        ${incomodasArr.length > 0 ? `
-        <section class="info-card">
-          <h2 class="card-heading">Qué me incomoda o se me dificulta</h2>
-          \${incomodasArr.map(item => `<p class="card-copy">• ${item}</p>`).join('')}
-        </section>` : ''}
-
-        ${ayudaArr.length > 0 ? `
-        <section class="info-card">
-          <h2 class="card-heading">Cómo puedes ayudarme</h2>
-          \${ayudaArr.map(item => `<p class="card-copy">• ${item}</p>`).join('')}
-        </section>` : ''}
-
-        ${gustosArr.length > 0 ? `
-        <section class="info-card">
-          <h2 class="card-heading">Gustos</h2>
-          \${gustosArr.map(item => `<p class="card-copy">• ${item}</p>`).join('')}
-        </section>` : ''}
-
-        ${sueno.trim() ? `
-        <section class="info-card">
-          <h2 class="card-heading">Sueño</h2>
-          <p class="card-copy">\${sueno.replace(/\n/g, '<br>')}</p>
-        </section>` : ''}
-
-        ${telsArr.map(tel => `<a class="call-link" href="tel:\${tel.replace(/[^0-9+]/g, '')}">Llamar a Emergencias: \${tel}</a>`).join('')}
+        ${incomodasHtml}
+        ${ayudaHtml}
+        ${gustosHtml}
+        ${suenoHtml}
+        ${telsHtml}
 
         <div class="qr-box-container">
           <h3 style="margin-top:0; border:none; color: var(--navy);">Código QR del Carnet</h3>
           <p style="font-size: 13px; color: #555; margin: 5px 0;">Descarga este código QR corporativo:</p>
           <div class="qr-box" id="qrcode"></div>
           <div>
-            <a id="btnDescargarQR" class="btn-download-qr" download="qr-emergencia.png">⬇ Descargar Imagen QR</a>
+            <a id="btnDescargarQR" class="btn-download-qr" download="qr-${nombre.replace(/\s+/g, '_')}.png">⬇ Descargar Imagen QR</a>
           </div>
           <div style="margin-top: 15px;">
-            <label style="font-size: 11px;">Enlace corporativo:</label>
-            <input type="text" readonly value="${urlActual}" style="background:#f9f9f9; font-size:11px; text-align:center; width:100%; padding:8px; border:1px solid #B8C4C2; border-radius:8px;">
+            <label style="font-size: 11px;">Enlace corporativo de la tarjeta:</label>
+            <input type="text" id="inputUrlTarjeta" readonly style="background:#f9f9f9; font-size:11px; text-align:center; width:100%; padding:8px; border:1px solid #B8C4C2; border-radius:8px;">
           </div>
         </div>
       </div>
@@ -371,8 +382,12 @@
   </div>
 
   <script>
+    // Capturamos la URL del Blob actual para que el QR y el enlace apunten directamente a esta tarjeta generada
+    const currentBlobUrl = window.location.href;
+    document.getElementById('inputUrlTarjeta').value = currentBlobUrl;
+
     new QRCode(document.getElementById("qrcode"), {
-      text: "${urlActual}",
+      text: currentBlobUrl,
       width: 160,
       height: 160,
       colorDark: "#183453",
@@ -389,7 +404,7 @@
       } else if(qrCanvas) {
         btnDownload.href = qrCanvas.toDataURL("image/png");
       }
-    }, 300);
+    }, 400);
   </script>
 </body>
 </html>`;
