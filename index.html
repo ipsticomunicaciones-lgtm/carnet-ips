@@ -280,7 +280,6 @@
         const telsArr = [];
         document.querySelectorAll('.contactoTel').forEach(el => { if(el.value.trim()) telsArr.push(el.value); });
 
-        // Construcción de bloques HTML limpios mediante JavaScript plano (sin escapar mal las variables)
         let incomodasHtml = '';
         if(incomodasArr.length > 0) {
           incomodasHtml = `<section class="info-card"><h2 class="card-heading">Qué me incomoda o se me dificulta</h2>`;
@@ -382,7 +381,6 @@
   </div>
 
   <script>
-    // Capturamos la URL del Blob actual para que el QR y el enlace apunten directamente a esta tarjeta generada
     const currentBlobUrl = window.location.href;
     document.getElementById('inputUrlTarjeta').value = currentBlobUrl;
 
